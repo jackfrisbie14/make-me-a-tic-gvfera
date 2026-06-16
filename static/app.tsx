@@ -34,6 +34,13 @@ async function boot() {
     if (profile) {
       currentTier = (profile.plan || 'starter') as Tier;
       brokerKey = profile.tm_api_key || '';
+      sgKey     = profile.sg_api_key || '';
+      shKey     = profile.sh_api_key || '';
+      profileId = profile.id || null;
+    } else {
+      // Auto-create profile on first login
+      const created = await bm.api.post('/api/broker_profiles', { plan: 'starter' }) as any;
+      profileId = created?.data?.id || created?.id || null;
     }
   } catch {}
 
