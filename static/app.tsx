@@ -155,7 +155,7 @@ function render(): void {
       <div id="status-bar" class="hidden px-6 py-2 bg-zinc-900/80 border-b border-zinc-800 text-xs text-zinc-500 flex items-center gap-2"></div>
 
       <!-- Results -->
-      <div class="flex-1 px-4 py-6 max-w-7xl mx-auto w-full">
+      <div class="px-4 py-6 max-w-7xl mx-auto w-full">
         <div id="results-header" class="hidden mb-4 flex items-center justify-between">
           <div id="results-count" class="text-sm text-zinc-400"></div>
           <button id="clear-btn" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1.5">
