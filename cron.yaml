@@ -3,6 +3,6 @@
 # DST-aware) PER watchlist via its auto_pause flag: TM-only watches log a
 # 'maintenance' scan during the window; resale-source watches keep scanning.
 jobs:
-  - name: scan_watchlists
+  - id: scan_watchlists
     schedule: "*/5 * * * *"
     flow: scan_watchlists
