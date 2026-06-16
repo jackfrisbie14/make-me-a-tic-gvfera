@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" class="h-full bg-white dark:bg-zinc-950">
+<head>
+  <!-- Shared chrome (meta, Tailwind, stylesheet) lives in one place.
+       Edit static/partials/head.html once; every page picks it up.
+       <include> resolves relative to static/ on the HTML stack. -->
+  <include src="partials/head.html" />
+  <title>Make me a ticket spinner</title>
+</head>
+<body class="h-full text-zinc-900 dark:text-zinc-100 antialiased">
+  <main class="mx-auto max-w-3xl px-6 py-10" data-route="home">
+    <header class="flex items-center justify-between mb-8">
+      <h1 class="text-2xl font-semibold tracking-tight">Make me a ticket spinner</h1>
+      <div class="who flex items-center gap-3" hidden>
+        <span class="who-name text-sm text-zinc-600 dark:text-zinc-400"></span>
+        <button type="button" data-action="signout" class="text-sm px-3 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Anonymous view -->
+    <section class="anon space-y-2" hidden>
+      <p class="text-zinc-600 dark:text-zinc-400">You're not signed in.</p>
+      <p class="text-sm">
+        <a href="/login.html" class="text-blue-600 dark:text-blue-400 hover:underline">Log in</a>
+        <span class="text-zinc-400">&middot;</span>
+        <a href="/signup.html" class="text-blue-600 dark:text-blue-400 hover:underline">Sign up</a>
+      </p>
+    </section>
+
+    <!-- Authenticated view -->
+    <section class="app space-y-4" hidden>
+      <form id="new-note" class="flex gap-2">
+        <input name="title" placeholder="What needs writing down?" autocomplete="off" required
+               class="flex-1 px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-500">Add</button>
+      </form>
+      <ul id="notes" class="divide-y divide-zinc-200 dark:divide-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-800"></ul>
+      <p class="empty text-sm text-zinc-500" hidden>No notes yet. Add one above.</p>
+    </section>
+  </main>
+
+  <!-- Resolve the bare 'bm' specifier to the framework's SDK module.
+       Agents writing TSX/TS use: import bm from 'bm' -->
+  <script type="importmap">{"imports":{"bm":"/_internal/bm.js"}}</script>
+  <!-- /static/app.js is compiled on-the-fly from static/app.tsx
+       (esbuild Go API; no node, no build step). Edit the .tsx file
+       directly; saves auto-refresh. -->
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

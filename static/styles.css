@@ -1,0 +1,40 @@
+/* styles.css - opt-in custom styles.
+
+   Tailwind is the primary styling engine - drop utility classes
+   directly in your HTML/JSX markup (and in className strings inside
+   .tsx files). Look up utility names at tailwindcss.com/docs. Common
+   patterns the scaffold already uses:
+
+     Layout      flex, grid, gap-4, space-y-2, mx-auto, max-w-3xl
+     Color       bg-zinc-900 dark:bg-zinc-50, text-zinc-100, ring-blue-500
+     Type        text-2xl font-semibold tracking-tight
+     Borders     rounded-md, border, divide-y
+     Spacing     px-3 py-2, p-6, mt-4
+     States      hover:bg-blue-500, focus:outline-none focus:ring-2
+     Dark mode   prefix with "dark:" - automatic via prefers-color-scheme
+
+   Use this file ONLY for things Tailwind can't express in markup -
+   keyframe animations, third-party widget overrides, custom font
+   declarations, app-wide CSS variables. Don't recreate utility-class
+   styles here; the agent that follows you will end up confused about
+   which path is canonical.
+
+   Examples of legitimate styles.css content:
+
+     @keyframes pulse-once { 0%{opacity:.4} 100%{opacity:1} }
+     .toast-enter { animation: pulse-once .2s ease-out; }
+
+     @font-face { font-family: 'CompanyBrand'; src: url(...); }
+
+   The scaffold leaves this file empty by default. Add what you need;
+   don't add what you don't.
+*/
+
+/* The HTML "hidden" attribute must beat utility display classes. A node like
+   <section class="... flex" hidden> otherwise stays display:flex - the .flex
+   utility loads after the UA [hidden]{display:none} rule with equal
+   specificity, so it wins and the element never actually hides. That breaks
+   the common pattern of toggling the "hidden" attribute to switch between an
+   anonymous view and the signed-in app. Keep this rule (or delete it only if
+   you never use the hidden attribute alongside a display utility class). */
+[hidden] { display: none !important; }
