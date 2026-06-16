@@ -96,6 +96,11 @@ function render(): void {
                 <i data-lucide="alert-triangle" class="w-3 h-3 pointer-events-none"></i> Add API key
                </a>`
           }
+          <a href="/dashboard.html"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700 text-xs text-zinc-300 transition-colors">
+            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 pointer-events-none"></i>
+            <span class="hidden sm:inline">Dashboard</span>
+          </a>
           <a href="/settings.html"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700 text-xs text-zinc-300 transition-colors">
             <i data-lucide="settings" class="w-3.5 h-3.5 pointer-events-none"></i>
