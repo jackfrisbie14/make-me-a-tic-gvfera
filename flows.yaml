@@ -21,7 +21,7 @@ jobs:
             classificationName: "${{ params.category | default:'' }}"
             size: "${{ params.size | default:'20' }}"
             sort: "${{ params.sort | default:'date,asc' }}"
-            page: "${{ params.page | default:'' }}"
+            page: "${{ params.page | default:'0' }}"
       - run: respond
         with:
           status: 200
