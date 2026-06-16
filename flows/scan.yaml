@@ -223,9 +223,9 @@ jobs:
                             data:
                               keyword: "${{ item.keyword }}"
                               max_price: "${{ item.max_price }}"
-                              count: "${{ steps.newhits.rows[0].n }}"
+                              count: "${{ steps.newhits.outputs.rows[0].n }}"
                               auto_purchase: "${{ item.auto_purchase }}"
-                              hits: "${{ steps.hitrows.rows }}"
+                              hits: "${{ steps.hitrows.outputs.rows }}"
                         # Mark them notified so we don't email twice.
                         - run: sql
                           with:
