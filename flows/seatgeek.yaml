@@ -1,0 +1,28 @@
+on:
+  request:
+    method: GET
+    path: /api/search-seatgeek
+    auth: none
+
+jobs:
+  search_seatgeek:
+    steps:
+      - id: sg
+        run: api
+        with:
+          url: "https://api.seatgeek.com/2/events"
+          method: GET
+          query:
+            client_id: "${{ params.sg_key | default:'' }}"
+            q: "${{ params.keyword | default:'' }}"
+            venue.city: "${{ params.city | default:'' }}"
+            datetime_utc.gte: "${{ params.startDate | default:'' }}"
+            datetime_utc.lte: "${{ params.endDate | default:'' }}"
+            type: "${{ params.category | default:'' }}"
+            per_page: "${{ params.size | default:'20' }}"
+            sort: "${{ params.sort | default:'datetime_utc.asc' }}"
+            page: "${{ params.page | default:'1' }}"
+      - run: respond
+        with:
+          status: 200
+          body: "${{ steps.sg.outputs }}"
