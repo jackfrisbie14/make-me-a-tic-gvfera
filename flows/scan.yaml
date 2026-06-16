@@ -110,7 +110,7 @@ jobs:
             # ── BRANCH B: scan Ticketmaster (window clear, or auto_pause off).
             - run: if
               with:
-                condition: "${{ steps.clock.rows[0].in_tm_maintenance == 0 || item.auto_pause == 0 }}"
+                condition: "${{ steps.clock.outputs.rows[0].in_tm_maintenance == 0 || item.auto_pause == 0 }}"
                 then:
                   # Fire Ticketmaster search.
                   - id: tm_result
