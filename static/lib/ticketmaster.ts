@@ -57,6 +57,7 @@ export async function searchTickets(params: SearchParams): Promise<TMEvent[]> {
   if (params.category && params.category !== 'all') qs.set('category', params.category);
   qs.set('sort', params.sort);
   qs.set('size', '20');
+  if (params.page) qs.set('page', String(params.page));
 
   const res = await fetch(`/api/search-tickets?${qs.toString()}`);
   if (!res.ok) throw new Error(`Search failed: ${res.status}`);
