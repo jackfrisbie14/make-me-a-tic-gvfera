@@ -13,14 +13,14 @@ jobs:
           url: "https://app.ticketmaster.com/discovery/v2/events.json"
           method: GET
           query:
-            apikey: "${{ env.TICKETMASTER_API_KEY }}"
+            apikey: "${{ params.tm_key | default:env.TICKETMASTER_API_KEY }}"
             keyword: "${{ params.keyword | default:'' }}"
             city: "${{ params.city | default:'' }}"
             startDateTime: "${{ params.startDate | default:'' }}"
             endDateTime: "${{ params.endDate | default:'' }}"
             classificationName: "${{ params.category | default:'' }}"
-            size: "${{ params.size || '20' }}"
-            sort: "${{ params.sort || 'date,asc' }}"
+            size: "${{ params.size | default:'20' }}"
+            sort: "${{ params.sort | default:'date,asc' }}"
             page: "${{ params.page | default:'' }}"
       - run: respond
         with:
