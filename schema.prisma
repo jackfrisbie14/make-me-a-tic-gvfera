@@ -8,39 +8,62 @@ generator client {
 }
 
 model BrokerProfile {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique @map("user_id")
-  plan       String   @default("starter")   // starter | pro | broker
-  tmApiKey   String   @default("") @map("tm_api_key")
-  keyLabel   String   @default("") @map("key_label")
-  usageToday Int      @default(0) @map("usage_today")
-  usageDate  String   @default("") @map("usage_date")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique @map("user_id")
+  plan        String   @default("starter")   // starter | pro | broker
+  tmApiKey    String   @default("") @map("tm_api_key")
+  sgApiKey    String   @default("") @map("sg_api_key")   // SeatGeek Client ID
+  shApiKey    String   @default("") @map("sh_api_key")   // StubHub API Key
+  keyLabel    String   @default("") @map("key_label")
+  usageToday  Int      @default(0) @map("usage_today")
+  usageTotal  Int      @default(0) @map("usage_total")
+  usageDate   String   @default("") @map("usage_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("broker_profiles")
 }
 
 model HouseKey {
-  id        Int      @id @default(autoincrement())
-  label     String
-  apiKey    String   @map("api_key")
-  active    Boolean  @default(true)
-  usageToday Int     @default(0) @map("usage_today")
-  usageDate  String  @default("") @map("usage_date")
+  id         Int      @id @default(autoincrement())
+  label      String
+  apiKey     String   @map("api_key")
+  active     Boolean  @default(true)
+  usageToday Int      @default(0) @map("usage_today")
+  usageDate  String   @default("") @map("usage_date")
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("house_keys")
 }
 
 model Search {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  keyword   String
-  city      String   @default("")
-  strategy  String   @default("")
-  results   Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  keyword     String   @default("")
+  city        String   @default("")
+  strategy    String   @default("")
+  source      String   @default("ticketmaster")  // ticketmaster | seatgeek | stubhub
+  results     Int      @default(0)
+  soldOut     Int      @default(0) @map("sold_out")
+  createdAt   DateTime @default(now()) @map("created_at")
 
+  @@index([userId, createdAt])
   @@map("searches")
+}
+
+model Watchlist {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  keyword     String
+  city        String   @default("")
+  category    String   @default("")
+  notes       String   @default("")
+  active      Boolean  @default(true)
+  lastHit     String   @default("") @map("last_hit")
+  hitCount    Int      @default(0) @map("hit_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("watchlists")
 }
