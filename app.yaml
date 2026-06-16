@@ -27,3 +27,8 @@ access:
     write: everyone
     update: admin
     delete: admin
+  watchlists:
+    read: self
+    write: self
+    update: self
+    delete: self
