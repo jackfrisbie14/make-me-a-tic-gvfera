@@ -197,7 +197,7 @@ jobs:
                         VALUES (
                           ${{ item.id }}, ${{ item.user_id }}, 'ok',
                           ${{ steps.tm_result.outputs._embedded.events | length | default:0 }},
-                          ${{ steps.newhits.rows[0].n }}
+                          ${{ steps.newhits.outputs.rows[0].n }}
                         )
 
                   # Fire ONE alert email per watch if there are new hits and
