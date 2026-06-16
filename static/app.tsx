@@ -15,7 +15,7 @@ let activeThreads: ReturnType<typeof setTimeout>[] = [];
 function render(): void {
   const root = document.getElementById('app')!;
   root.innerHTML = `
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+    <div class="bg-zinc-950 text-zinc-100">
 
       <!-- Header -->
       <header class="tm-logo-bar px-6 py-4 flex items-center justify-between">
