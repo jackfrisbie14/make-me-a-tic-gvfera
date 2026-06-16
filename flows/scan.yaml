@@ -218,7 +218,7 @@ jobs:
                         - run: email
                           with:
                             to: "${{ item.alert_email | default:item.profile_email | default:'' }}"
-                            subject: "🎟️ TicketSpin: ${{ steps.newhits.rows[0].n }} match for '${{ item.keyword }}' under $${{ item.max_price }}"
+                            subject: "🎟️ TicketSpin: ${{ steps.newhits.outputs.rows[0].n }} match for '${{ item.keyword }}' under $${{ item.max_price }}"
                             template: watch_alert
                             data:
                               keyword: "${{ item.keyword }}"
