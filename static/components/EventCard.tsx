@@ -1,4 +1,4 @@
-import { type TMEvent, getBestImage, formatDate, formatPrice, getVenue, getGenre, getStatusBadge } from './lib/ticketmaster';
+import { type TMEvent, getBestImage, formatDate, formatPrice, getVenue, getGenre, getStatusBadge } from '../lib/ticketmaster';
 
 export function renderEventCard(event: TMEvent): string {
   const img = getBestImage(event.images);
