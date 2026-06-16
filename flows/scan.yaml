@@ -7,33 +7,50 @@ on:
 jobs:
   scan_watchlists:
     steps:
-      # 1. Check if we're in the Ticketmaster maintenance window (2–6 AM ET)
-      #    ET = UTC-5 (EST) or UTC-4 (EDT). We check UTC hour.
-      #    2 AM ET = 7 AM UTC (EST) / 6 AM UTC (EDT)
-      #    6 AM ET = 11 AM UTC (EST) / 10 AM UTC (EDT)
-      #    Use a safe window: skip UTC 06:00–11:00 to cover both offsets
-      - id: time_check
+      # ─────────────────────────────────────────────────────────────
+      # 1. Compute the current Eastern-Time hour.
+      #    Server clock is UTC. ET = UTC-5 (EST) or UTC-4 (EDT).
+      #    US DST: 2nd Sun of March → 1st Sun of November (approx by
+      #    day-of-year here — close enough for a maintenance window).
+      #    in_tm_maintenance = ET hour in [2,6)  (Ticketmaster nightly
+      #    service window, ~2:00–6:00 AM ET). This is PER-SOURCE: only
+      #    the Ticketmaster call is suppressed; resale sources keep
+      #    scanning overnight.
+      # ─────────────────────────────────────────────────────────────
+      - id: clock
         run: sql
         with:
           query: |
+            WITH now_parts AS (
+              SELECT
+                CAST(strftime('%m', 'now') AS INTEGER) AS mon,
+                CAST(strftime('%d', 'now') AS INTEGER) AS day,
+                CAST(strftime('%H', 'now') AS INTEGER) AS utc_hour
+            ),
+            dst AS (
+              SELECT *,
+                CASE
+                  WHEN mon BETWEEN 4 AND 10 THEN 1            -- Apr–Oct: always EDT
+                  WHEN mon = 3 AND day >= 8 THEN 1            -- after ~2nd Sun Mar
+                  WHEN mon = 11 AND day < 7 THEN 1            -- before ~1st Sun Nov
+                  ELSE 0                                       -- EST
+                END AS is_edt
+              FROM now_parts
+            )
             SELECT
-              CAST(strftime('%H', 'now') AS INTEGER) AS utc_hour,
+              utc_hour,
+              is_edt,
+              ((utc_hour - (CASE WHEN is_edt = 1 THEN 4 ELSE 5 END)) % 24 + 24) % 24 AS et_hour,
               CASE
-                WHEN CAST(strftime('%H', 'now') AS INTEGER) BETWEEN 6 AND 11
+                WHEN ((utc_hour - (CASE WHEN is_edt = 1 THEN 4 ELSE 5 END)) % 24 + 24) % 24
+                     BETWEEN 2 AND 5
                 THEN 1 ELSE 0
-              END AS in_maintenance
+              END AS in_tm_maintenance
+            FROM dst
 
-      # 2. If in maintenance, skip everything
-      - run: if
-        with:
-          condition: "${{ steps.time_check.rows[0].in_maintenance == 1 }}"
-          then:
-            - run: respond
-              with:
-                status: 200
-                body: { skipped: true, reason: "maintenance_window", utc_hour: "${{ steps.time_check.rows[0].utc_hour }}" }
-
-      # 3. Fetch all active watchlists due for a scan
+      # ─────────────────────────────────────────────────────────────
+      # 2. Fetch all active watchlists due for a scan.
+      # ─────────────────────────────────────────────────────────────
       - id: watches
         run: sql
         with:
@@ -50,9 +67,8 @@ jobs:
               w.sources,
               w.interval_mins,
               w.auto_pause,
+              w.auto_purchase,
               bp.tm_api_key,
-              bp.sg_api_key,
-              bp.sh_api_key,
               bp.alert_email AS profile_email
             FROM watchlists w
             LEFT JOIN broker_profiles bp ON bp.user_id = w.user_id
@@ -63,26 +79,15 @@ jobs:
               )
             LIMIT 150
 
-      # 4. For each active watch, fire a TM search and record results
+      # ─────────────────────────────────────────────────────────────
+      # 3. Per watch: decide whether to hit Ticketmaster, then scan.
+      # ─────────────────────────────────────────────────────────────
       - id: results
         run: for_each
         with:
           items: "${{ steps.watches.rows }}"
           steps:
-            # Fire Ticketmaster search
-            - id: tm_result
-              run: api
-              with:
-                url: "https://app.ticketmaster.com/discovery/v2/events.json"
-                method: GET
-                query:
-                  apikey: "${{ item.tm_api_key | default:'' }}"
-                  keyword: "${{ item.keyword }}"
-                  classificationName: "${{ item.category | default:'' }}"
-                  size: "20"
-                  sort: "date,asc"
-
-            # Update last_checked timestamp
+            # Always stamp last_checked so the cadence holds.
             - run: sql
               with:
                 query: |
@@ -90,20 +95,150 @@ jobs:
                   SET last_checked = datetime('now')
                   WHERE id = ${{ item.id }}
 
-            # Log the scan
-            - run: sql
+            # ── BRANCH A: TM is in maintenance AND this watch opted to
+            #    auto-pause → skip the TM call, log a maintenance row.
+            - run: if
               with:
-                query: |
-                  INSERT INTO scan_logs (watchlist_id, user_id, status, results, hits)
-                  VALUES (
-                    ${{ item.id }},
-                    ${{ item.user_id }},
-                    'ok',
-                    ${{ steps.tm_result.outputs._embedded.events | length | default:0 }},
-                    0
-                  )
+                condition: "${{ steps.clock.rows[0].in_tm_maintenance == 1 && item.auto_pause == 1 }}"
+                then:
+                  - run: sql
+                    with:
+                      query: |
+                        INSERT INTO scan_logs (watchlist_id, user_id, status, results, hits)
+                        VALUES (${{ item.user_id }}, ${{ item.user_id }}, 'maintenance', 0, 0)
+
+            # ── BRANCH B: scan Ticketmaster (window clear, or auto_pause off).
+            - run: if
+              with:
+                condition: "${{ steps.clock.rows[0].in_tm_maintenance == 0 || item.auto_pause == 0 }}"
+                then:
+                  # Fire Ticketmaster search.
+                  - id: tm_result
+                    run: api
+                    with:
+                      url: "https://app.ticketmaster.com/discovery/v2/events.json"
+                      method: GET
+                      query:
+                        apikey: "${{ item.tm_api_key | default:'' }}"
+                        keyword: "${{ item.keyword }}"
+                        classificationName: "${{ item.category | default:'' }}"
+                        size: "20"
+                        sort: "date,asc"
+
+                  # Walk each returned event; record a hit when it's NEW and
+                  # at/under the price ceiling (max_price = 0 means no cap).
+                  - run: for_each
+                    with:
+                      items: "${{ steps.tm_result.outputs._embedded.events | default:[] }}"
+                      as: ev
+                      steps:
+                        - run: if
+                          with:
+                            condition: >-
+                              ${{ (item.max_price == 0
+                                   || (ev.priceRanges[0].min | default:0) <= item.max_price)
+                                  && (ev.priceRanges[0].min | default:0) > 0 }}
+                            then:
+                              # Insert hit only if we haven't already logged this
+                              # event for this watch (dedupe via NOT EXISTS).
+                              - run: sql
+                                with:
+                                  query: |
+                                    INSERT INTO watch_hits
+                                      (watchlist_id, user_id, event_id, event_name,
+                                       event_date, venue, city, price, url, source, status, notified)
+                                    SELECT
+                                      ${{ item.id }}, ${{ item.user_id }},
+                                      :eid, :ename, :edate, :venue, :city,
+                                      :price, :url, 'ticketmaster', 'available', 0
+                                    WHERE NOT EXISTS (
+                                      SELECT 1 FROM watch_hits
+                                      WHERE watchlist_id = ${{ item.id }}
+                                        AND event_id = :eid
+                                    )
+                                  params:
+                                    eid: "${{ ev.id | default:'' }}"
+                                    ename: "${{ ev.name | default:'' }}"
+                                    edate: "${{ ev.dates.start.localDate | default:'' }}"
+                                    venue: "${{ ev._embedded.venues[0].name | default:'' }}"
+                                    city: "${{ ev._embedded.venues[0].city.name | default:'' }}"
+                                    price: "${{ ev.priceRanges[0].min | default:0 }}"
+                                    url: "${{ ev.url | default:'' }}"
+
+                  # Bump watch counters + log the scan with real counts.
+                  - id: newhits
+                    run: sql
+                    with:
+                      query: |
+                        SELECT COUNT(*) AS n,
+                               MAX(price) AS top_price,
+                               MIN(price) AS low_price
+                        FROM watch_hits
+                        WHERE watchlist_id = ${{ item.id }}
+                          AND notified = 0
+
+                  - run: sql
+                    with:
+                      query: |
+                        UPDATE watchlists
+                        SET last_hit = CASE WHEN ${{ steps.newhits.rows[0].n }} > 0
+                                            THEN datetime('now') ELSE last_hit END,
+                            last_hit_price = CASE WHEN ${{ steps.newhits.rows[0].n }} > 0
+                                            THEN ${{ steps.newhits.rows[0].low_price | default:0 }}
+                                            ELSE last_hit_price END,
+                            hits_today = hits_today + ${{ steps.newhits.rows[0].n }},
+                            hit_total  = hit_total  + ${{ steps.newhits.rows[0].n }}
+                        WHERE id = ${{ item.id }}
+
+                  - run: sql
+                    with:
+                      query: |
+                        INSERT INTO scan_logs (watchlist_id, user_id, status, results, hits)
+                        VALUES (
+                          ${{ item.id }}, ${{ item.user_id }}, 'ok',
+                          ${{ steps.tm_result.outputs._embedded.events | length | default:0 }},
+                          ${{ steps.newhits.rows[0].n }}
+                        )
+
+                  # Fire ONE alert email per watch if there are new hits and
+                  # we have somewhere to send it.
+                  - run: if
+                    with:
+                      condition: "${{ steps.newhits.rows[0].n > 0 }}"
+                      then:
+                        - id: hitrows
+                          run: sql
+                          with:
+                            query: |
+                              SELECT event_name, event_date, venue, city, price, url
+                              FROM watch_hits
+                              WHERE watchlist_id = ${{ item.id }} AND notified = 0
+                              ORDER BY price ASC
+                              LIMIT 10
+                        - run: email
+                          with:
+                            to: "${{ item.alert_email | default:item.profile_email | default:'' }}"
+                            subject: "🎟️ TicketSpin: ${{ steps.newhits.rows[0].n }} match for '${{ item.keyword }}' under $${{ item.max_price }}"
+                            template: watch_alert
+                            data:
+                              keyword: "${{ item.keyword }}"
+                              max_price: "${{ item.max_price }}"
+                              count: "${{ steps.newhits.rows[0].n }}"
+                              auto_purchase: "${{ item.auto_purchase }}"
+                              hits: "${{ steps.hitrows.rows }}"
+                        # Mark them notified so we don't email twice.
+                        - run: sql
+                          with:
+                            query: |
+                              UPDATE watch_hits
+                              SET notified = 1
+                              WHERE watchlist_id = ${{ item.id }} AND notified = 0
 
       - run: respond
         with:
           status: 200
-          body: { ok: true, scanned: "${{ steps.watches.rows | length }}", utc_hour: "${{ steps.time_check.rows[0].utc_hour }}" }
+          json:
+            ok: true
+            scanned: "${{ steps.watches.rows | length }}"
+            et_hour: "${{ steps.clock.rows[0].et_hour }}"
+            tm_maintenance: "${{ steps.clock.rows[0].in_tm_maintenance }}"
