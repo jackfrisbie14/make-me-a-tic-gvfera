@@ -456,7 +456,7 @@ async function doSpin(): Promise<void> {
     const header = document.getElementById('results-header')!;
     header.className = 'mb-4 flex items-center justify-between';
     document.getElementById('results-count')!.innerHTML =
-      `Found <strong class="text-violet-400">${totalFound}</strong> events across <strong class="text-zinc-200">${activeStrategies.length}</strong> threads`;
+      `Found <strong class="text-violet-400">${totalFound}</strong> events across <strong class="text-zinc-200">${activeStrategies.length}</strong> threads${totalSoldOut > 0 ? ` · <strong class="text-red-400">🔥 ${totalSoldOut} sold out</strong>` : ''}`;
     document.getElementById('empty-state')!.className = 'hidden';
   } else {
     document.getElementById('empty-state')!.innerHTML = `
