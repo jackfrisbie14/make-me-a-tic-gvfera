@@ -14,11 +14,11 @@ jobs:
           method: GET
           query:
             apikey: "${{ env.TICKETMASTER_API_KEY }}"
-            keyword: "${{ params.keyword }}"
-            city: "${{ params.city }}"
-            startDateTime: "${{ params.startDate }}"
-            endDateTime: "${{ params.endDate }}"
-            classificationName: "${{ params.category }}"
+            keyword: "${{ params.keyword | default:'' }}"
+            city: "${{ params.city | default:'' }}"
+            startDateTime: "${{ params.startDate | default:'' }}"
+            endDateTime: "${{ params.endDate | default:'' }}"
+            classificationName: "${{ params.category | default:'' }}"
             size: "${{ params.size || '20' }}"
             sort: "${{ params.sort || 'date,asc' }}"
       - run: respond
