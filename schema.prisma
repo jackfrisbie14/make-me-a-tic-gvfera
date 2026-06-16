@@ -59,12 +59,13 @@ model Watchlist {
   cities        String   @default("[]") // JSON array of city strings
   category      String   @default("")
   seatTypes     String   @default("[]") @map("seat_types") // JSON: ["floor","pit","vip","ga"]
-  maxPrice      Float    @default(0) @map("max_price")     // 0 = no limit
+  maxPrice      Float    @default(0) @map("max_price")     // price ceiling; 0 = no limit
   alertEmail    String   @default("") @map("alert_email")
   sources       String   @default("[\"ticketmaster\"]") // JSON array
   intervalMins  Int      @default(5) @map("interval_mins")
   active        Boolean  @default(true)
-  autoPause     Boolean  @default(true) @map("auto_pause") // pause during TM maintenance
+  autoPurchase  Boolean  @default(false) @map("auto_purchase") // arm instant-buy alerts at/under maxPrice
+  autoPause     Boolean  @default(true) @map("auto_pause") // pause TM source during TM maintenance (resale keeps scanning)
   lastChecked   String   @default("") @map("last_checked")
   lastHit       String   @default("") @map("last_hit")
   lastHitPrice  Float    @default(0) @map("last_hit_price")
