@@ -1,5 +1,7 @@
-# Runs every 5 minutes — sweeps all active watchlist items
-# Skips 2:00–6:00 AM Eastern (Ticketmaster maintenance window)
+# Runs every 5 minutes, 24/7 — sweeps all active watchlist items.
+# The flow itself handles the Ticketmaster maintenance window (~2:00–6:00 AM ET,
+# DST-aware) PER watchlist via its auto_pause flag: TM-only watches log a
+# 'maintenance' scan during the window; resale-source watches keep scanning.
 jobs:
   - name: scan_watchlists
     schedule: "*/5 * * * *"
