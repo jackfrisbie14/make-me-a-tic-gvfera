@@ -1,0 +1,6 @@
+# Runs every 5 minutes — sweeps all active watchlist items
+# Skips 2:00–6:00 AM Eastern (Ticketmaster maintenance window)
+jobs:
+  - name: scan_watchlists
+    schedule: "*/5 * * * *"
+    flow: scan_watchlists
