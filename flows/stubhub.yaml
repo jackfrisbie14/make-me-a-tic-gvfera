@@ -1,0 +1,27 @@
+on:
+  request:
+    method: GET
+    path: /api/search-stubhub
+    auth: none
+
+jobs:
+  search_stubhub:
+    steps:
+      - id: sh
+        run: api
+        with:
+          url: "https://api.stubhub.com/sellers/search/events/v3"
+          method: GET
+          headers:
+            Authorization: "Bearer ${{ params.sh_key | default:'' }}"
+          query:
+            name: "${{ params.keyword | default:'' }}"
+            city: "${{ params.city | default:'' }}"
+            dateFrom: "${{ params.startDate | default:'' }}"
+            dateTo: "${{ params.endDate | default:'' }}"
+            rows: "${{ params.size | default:'20' }}"
+            start: "${{ params.page | default:'0' }}"
+      - run: respond
+        with:
+          status: 200
+          body: "${{ steps.sh.outputs }}"
