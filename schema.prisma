@@ -12,12 +12,13 @@ model BrokerProfile {
   userId      Int      @unique @map("user_id")
   plan        String   @default("starter")   // starter | pro | broker
   tmApiKey    String   @default("") @map("tm_api_key")
-  sgApiKey    String   @default("") @map("sg_api_key")   // SeatGeek Client ID
-  shApiKey    String   @default("") @map("sh_api_key")   // StubHub API Key
+  sgApiKey    String   @default("") @map("sg_api_key")
+  shApiKey    String   @default("") @map("sh_api_key")
   keyLabel    String   @default("") @map("key_label")
   usageToday  Int      @default(0) @map("usage_today")
   usageTotal  Int      @default(0) @map("usage_total")
   usageDate   String   @default("") @map("usage_date")
+  alertEmail  String   @default("") @map("alert_email")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -42,7 +43,7 @@ model Search {
   keyword     String   @default("")
   city        String   @default("")
   strategy    String   @default("")
-  source      String   @default("ticketmaster")  // ticketmaster | seatgeek | stubhub
+  source      String   @default("ticketmaster")
   results     Int      @default(0)
   soldOut     Int      @default(0) @map("sold_out")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -52,18 +53,62 @@ model Search {
 }
 
 model Watchlist {
-  id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
-  keyword     String
-  city        String   @default("")
-  category    String   @default("")
-  notes       String   @default("")
-  active      Boolean  @default(true)
-  lastHit     String   @default("") @map("last_hit")
-  hitCount    Int      @default(0) @map("hit_count")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  keyword       String
+  cities        String   @default("[]") // JSON array of city strings
+  category      String   @default("")
+  seatTypes     String   @default("[]") @map("seat_types") // JSON: ["floor","pit","vip","ga"]
+  maxPrice      Float    @default(0) @map("max_price")     // 0 = no limit
+  alertEmail    String   @default("") @map("alert_email")
+  sources       String   @default("[\"ticketmaster\"]") // JSON array
+  intervalMins  Int      @default(5) @map("interval_mins")
+  active        Boolean  @default(true)
+  autoPause     Boolean  @default(true) @map("auto_pause") // pause during TM maintenance
+  lastChecked   String   @default("") @map("last_checked")
+  lastHit       String   @default("") @map("last_hit")
+  lastHitPrice  Float    @default(0) @map("last_hit_price")
+  hitsToday     Int      @default(0) @map("hits_today")
+  hitTotal      Int      @default(0) @map("hit_total")
+  notes         String   @default("")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@index([userId])
   @@map("watchlists")
+}
+
+model WatchHit {
+  id          Int      @id @default(autoincrement())
+  watchlistId Int      @map("watchlist_id")
+  userId      Int      @map("user_id")
+  eventId     String   @default("") @map("event_id")
+  eventName   String   @default("") @map("event_name")
+  eventDate   String   @default("") @map("event_date")
+  venue       String   @default("")
+  city        String   @default("")
+  price       Float    @default(0)
+  url         String   @default("")
+  source      String   @default("ticketmaster")
+  status      String   @default("available") // available | sold_out | limited
+  notified    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([watchlistId, createdAt])
+  @@index([userId, createdAt])
+  @@map("watch_hits")
+}
+
+model ScanLog {
+  id          Int      @id @default(autoincrement())
+  watchlistId Int      @map("watchlist_id")
+  userId      Int      @map("user_id")
+  status      String   @default("ok") // ok | maintenance | error | rate_limited
+  results     Int      @default(0)
+  hits        Int      @default(0)
+  errorMsg    String   @default("") @map("error_msg")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([watchlistId, createdAt])
+  @@map("scan_logs")
 }
