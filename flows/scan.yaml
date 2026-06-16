@@ -1,0 +1,109 @@
+on:
+  request:
+    method: POST
+    path: /api/scan-watchlists
+    auth: admin
+
+jobs:
+  scan_watchlists:
+    steps:
+      # 1. Check if we're in the Ticketmaster maintenance window (2–6 AM ET)
+      #    ET = UTC-5 (EST) or UTC-4 (EDT). We check UTC hour.
+      #    2 AM ET = 7 AM UTC (EST) / 6 AM UTC (EDT)
+      #    6 AM ET = 11 AM UTC (EST) / 10 AM UTC (EDT)
+      #    Use a safe window: skip UTC 06:00–11:00 to cover both offsets
+      - id: time_check
+        run: sql
+        with:
+          query: |
+            SELECT
+              CAST(strftime('%H', 'now') AS INTEGER) AS utc_hour,
+              CASE
+                WHEN CAST(strftime('%H', 'now') AS INTEGER) BETWEEN 6 AND 11
+                THEN 1 ELSE 0
+              END AS in_maintenance
+
+      # 2. If in maintenance, skip everything
+      - run: if
+        with:
+          condition: "${{ steps.time_check.rows[0].in_maintenance == 1 }}"
+          then:
+            - run: respond
+              with:
+                status: 200
+                body: { skipped: true, reason: "maintenance_window", utc_hour: "${{ steps.time_check.rows[0].utc_hour }}" }
+
+      # 3. Fetch all active watchlists due for a scan
+      - id: watches
+        run: sql
+        with:
+          query: |
+            SELECT
+              w.id,
+              w.user_id,
+              w.keyword,
+              w.cities,
+              w.category,
+              w.seat_types,
+              w.max_price,
+              w.alert_email,
+              w.sources,
+              w.interval_mins,
+              w.auto_pause,
+              bp.tm_api_key,
+              bp.sg_api_key,
+              bp.sh_api_key,
+              bp.alert_email AS profile_email
+            FROM watchlists w
+            LEFT JOIN broker_profiles bp ON bp.user_id = w.user_id
+            WHERE w.active = 1
+              AND (
+                w.last_checked = ''
+                OR datetime(w.last_checked) <= datetime('now', '-' || w.interval_mins || ' minutes')
+              )
+            LIMIT 150
+
+      # 4. For each active watch, fire a TM search and record results
+      - id: results
+        run: for_each
+        with:
+          items: "${{ steps.watches.rows }}"
+          steps:
+            # Fire Ticketmaster search
+            - id: tm_result
+              run: api
+              with:
+                url: "https://app.ticketmaster.com/discovery/v2/events.json"
+                method: GET
+                query:
+                  apikey: "${{ item.tm_api_key | default:'' }}"
+                  keyword: "${{ item.keyword }}"
+                  classificationName: "${{ item.category | default:'' }}"
+                  size: "20"
+                  sort: "date,asc"
+
+            # Update last_checked timestamp
+            - run: sql
+              with:
+                query: |
+                  UPDATE watchlists
+                  SET last_checked = datetime('now')
+                  WHERE id = ${{ item.id }}
+
+            # Log the scan
+            - run: sql
+              with:
+                query: |
+                  INSERT INTO scan_logs (watchlist_id, user_id, status, results, hits)
+                  VALUES (
+                    ${{ item.id }},
+                    ${{ item.user_id }},
+                    'ok',
+                    ${{ steps.tm_result.outputs._embedded.events | length | default:0 }},
+                    0
+                  )
+
+      - run: respond
+        with:
+          status: 200
+          body: { ok: true, scanned: "${{ steps.watches.rows | length }}", utc_hour: "${{ steps.time_check.rows[0].utc_hour }}" }
