@@ -204,7 +204,7 @@ jobs:
                   # we have somewhere to send it.
                   - run: if
                     with:
-                      condition: "${{ steps.newhits.rows[0].n > 0 }}"
+                      condition: "${{ steps.newhits.outputs.rows[0].n > 0 }}"
                       then:
                         - id: hitrows
                           run: sql
