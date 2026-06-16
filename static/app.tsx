@@ -402,8 +402,15 @@ async function doSpin(): Promise<void> {
     threadContainer.appendChild(el);
   });
 
-  // Build tasks with key injection
-  const tasks = activeStrategies.map(s => () => searchTickets(s.buildParams(base, brokerKey || undefined)));
+  // Build tasks with key injection — each strategy picks source based on its id prefix
+  const tasks = activeStrategies.map(s => () => {
+    const p = s.buildParams(base, brokerKey || undefined);
+    // Inject multi-source keys
+    if (sgKey) p.sg_key = sgKey;
+    if (shKey) p.sh_key = shKey;
+    // Strategies prefixed b_nat or b_near use TM by default; future: rotate sources
+    return searchTickets(p);
+  });
 
   // Batch with concurrency cap to avoid hammering the API
   const concurrency = activeStrategies.length <= 10 ? activeStrategies.length : 10;
