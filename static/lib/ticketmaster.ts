@@ -45,6 +45,7 @@ export interface SearchParams {
   endDate: string;
   category: string;
   sort: string;
+  page?: number;
 }
 
 export async function searchTickets(params: SearchParams): Promise<TMEvent[]> {
