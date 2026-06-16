@@ -1,35 +1,47 @@
-<!doctype html>
-<html lang="en" class="h-full bg-white dark:bg-zinc-950">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <include src="partials/head.html" />
-  <title>Log in &middot; Make me a ticket spinner</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – TicketSpin</title>
+  <script src="/_internal/tailwind.js"></script>
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
-<body class="h-full text-zinc-900 dark:text-zinc-100 antialiased">
-  <main class="min-h-full flex items-center justify-center px-6 py-10">
-    <form id="login-form" autocomplete="on" class="w-full max-w-sm space-y-4 p-6 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
-      <h1 class="text-2xl font-semibold tracking-tight">Log in</h1>
-      <p class="text-sm text-zinc-600 dark:text-zinc-400">Welcome back to Make me a ticket spinner.</p>
-      <div class="error text-sm text-red-600 dark:text-red-400" hidden></div>
-      <label class="block space-y-1">
-        <span class="text-sm font-medium">Email</span>
-        <input type="email" name="email" required autocomplete="email"
-               class="block w-full px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </label>
-      <label class="block space-y-1">
-        <span class="text-sm font-medium">Password</span>
-        <input type="password" name="password" required autocomplete="current-password"
-               class="block w-full px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </label>
-      <button type="submit" class="w-full px-4 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-500">Log in</button>
-      <p class="text-sm text-zinc-600 dark:text-zinc-400">No account? <a href="/signup.html" class="text-blue-600 dark:text-blue-400 hover:underline">Sign up</a></p>
-    </form>
-  </main>
-  <!-- Resolve the bare 'bm' specifier to the framework's SDK module.
-       Agents writing TSX/TS use: import bm from 'bm' -->
-  <script type="importmap">{"imports":{"bm":"/_internal/bm.js"}}</script>
-  <!-- /static/app.js is compiled on-the-fly from static/app.tsx
-       (esbuild Go API; no node, no build step). Edit the .tsx file
-       directly; saves auto-refresh. -->
-  <script type="module" src="/static/app.js"></script>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600 shadow-lg shadow-violet-900/50 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white">TicketSpin</h1>
+      <p class="text-sm text-zinc-500 mt-1">Broker Intelligence Platform</p>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-7 shadow-xl">
+      <h2 class="text-lg font-semibold mb-5">Sign in</h2>
+      <div id="error-msg" class="hidden mb-4 px-3 py-2 rounded-lg bg-red-900/30 border border-red-800/50 text-red-300 text-sm"></div>
+      <form method="POST" id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Email</label>
+          <input id="email" type="email" placeholder="you@brokerage.com" autocomplete="email"
+            class="w-full px-3 py-2.5 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-100 placeholder-zinc-600 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/40" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-1.5">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password"
+            class="w-full px-3 py-2.5 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-100 placeholder-zinc-600 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/40" />
+        </div>
+        <button type="submit" id="submit-btn"
+          class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-95 text-white font-semibold text-sm transition-all duration-150 disabled:opacity-50">
+          Sign In
+        </button>
+      </form>
+      <p class="mt-5 text-center text-sm text-zinc-600">
+        No account? <a href="/signup.html" class="text-violet-400 hover:text-violet-300">Sign up free</a>
+      </p>
+    </div>
+  </div>
+  <script type="module" src="/static/login.js"></script>
 </body>
 </html>
