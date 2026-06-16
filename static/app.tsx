@@ -2,6 +2,7 @@ import { searchTickets, type SearchParams, type TMEvent } from './lib/ticketmast
 import { renderEventCard } from './components/EventCard';
 import { initReels, startSpin, stopSpin, getRandomSymbols } from './components/SlotMachine';
 
+
 declare const lucide: { createIcons(): void };
 
 // ─── State ───────────────────────────────────────────────────────────────────
