@@ -1,0 +1,27 @@
+on:
+  request:
+    method: GET
+    path: /api/search-tickets
+    auth: none
+
+jobs:
+  search_tickets:
+    steps:
+      - id: tm
+        run: api
+        with:
+          url: "https://app.ticketmaster.com/discovery/v2/events.json"
+          method: GET
+          query:
+            apikey: "${{ env.TICKETMASTER_API_KEY }}"
+            keyword: "${{ params.keyword }}"
+            city: "${{ params.city }}"
+            startDateTime: "${{ params.startDate }}"
+            endDateTime: "${{ params.endDate }}"
+            classificationName: "${{ params.category }}"
+            size: "${{ params.size || '20' }}"
+            sort: "${{ params.sort || 'date,asc' }}"
+      - run: respond
+        with:
+          status: 200
+          body: "${{ steps.tm.outputs }}"
