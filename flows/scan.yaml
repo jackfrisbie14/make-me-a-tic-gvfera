@@ -99,7 +99,7 @@ jobs:
             #    auto-pause → skip the TM call, log a maintenance row.
             - run: if
               with:
-                condition: "${{ steps.clock.rows[0].in_tm_maintenance == 1 && item.auto_pause == 1 }}"
+                condition: "${{ steps.clock.outputs.rows[0].in_tm_maintenance == 1 && item.auto_pause == 1 }}"
                 then:
                   - run: sql
                     with:
