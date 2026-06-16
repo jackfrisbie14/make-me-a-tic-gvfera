@@ -240,5 +240,5 @@ jobs:
           json:
             ok: true
             scanned: "${{ steps.watches.outputs.rows | length }}"
-            et_hour: "${{ steps.clock.outputs.rows[0].et_hour }}"
-            tm_maintenance: "${{ steps.clock.outputs.rows[0].in_tm_maintenance }}"
+            et_hour: "${{ steps.clock.outputs.first.et_hour }}"
+            tm_maintenance: "${{ steps.clock.outputs.first.in_tm_maintenance }}"
