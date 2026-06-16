@@ -13,7 +13,7 @@ jobs:
           url: "https://app.ticketmaster.com/discovery/v2/events.json"
           method: GET
           query:
-            apikey: "${{ env.TICKETMASTER_API_KEY }}"
+            apikey: "${{ params.tm_key | default:'' }}"
             keyword: "${{ params.keyword | default:'' }}"
             city: "${{ params.city | default:'' }}"
             startDateTime: "${{ params.startDate | default:'' }}"
@@ -26,3 +26,64 @@ jobs:
         with:
           status: 200
           body: "${{ steps.tm.outputs }}"
+
+---
+
+on:
+  request:
+    method: GET
+    path: /api/search-seatgeek
+    auth: none
+
+jobs:
+  search_seatgeek:
+    steps:
+      - id: sg
+        run: api
+        with:
+          url: "https://api.seatgeek.com/2/events"
+          method: GET
+          query:
+            client_id: "${{ params.sg_key | default:'' }}"
+            q: "${{ params.keyword | default:'' }}"
+            venue.city: "${{ params.city | default:'' }}"
+            datetime_utc.gte: "${{ params.startDate | default:'' }}"
+            datetime_utc.lte: "${{ params.endDate | default:'' }}"
+            type: "${{ params.category | default:'' }}"
+            per_page: "${{ params.size | default:'20' }}"
+            sort: "${{ params.sort | default:'datetime_utc.asc' }}"
+            page: "${{ params.page | default:'1' }}"
+      - run: respond
+        with:
+          status: 200
+          body: "${{ steps.sg.outputs }}"
+
+---
+
+on:
+  request:
+    method: GET
+    path: /api/search-stubhub
+    auth: none
+
+jobs:
+  search_stubhub:
+    steps:
+      - id: sh
+        run: api
+        with:
+          url: "https://api.stubhub.com/sellers/search/events/v3"
+          method: GET
+          headers:
+            Authorization: "Bearer ${{ params.sh_key | default:'' }}"
+          query:
+            name: "${{ params.keyword | default:'' }}"
+            city: "${{ params.city | default:'' }}"
+            dateFrom: "${{ params.startDate | default:'' }}"
+            dateTo: "${{ params.endDate | default:'' }}"
+            rows: "${{ params.size | default:'20' }}"
+            start: "${{ params.page | default:'0' }}"
+      - run: respond
+        with:
+          status: 200
+          body: "${{ steps.sh.outputs }}"
