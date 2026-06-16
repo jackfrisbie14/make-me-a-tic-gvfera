@@ -1,5 +1,5 @@
 import bm from 'bm';
-import { searchTickets, type SearchParams, type TMEvent } from './lib/ticketmaster';
+import { searchTickets, searchSeatGeek, searchStubHub, type SearchParams, type TMEvent } from './lib/ticketmaster';
 import { renderEventCard } from './components/EventCard';
 import { initReels, startSpin, stopSpin } from './components/SlotMachine';
 import { ALL_STRATEGIES, TIER_LIMITS, type Tier, type Strategy } from './lib/strategies';
@@ -10,7 +10,10 @@ declare const lucide: { createIcons(): void };
 let spinning = false;
 let currentTier: Tier = 'starter';
 let selectedStrategyIds: Set<string> = new Set();
-let brokerKey = ''; // loaded from profile
+let brokerKey = '';    // TM key
+let sgKey = '';        // SeatGeek key
+let shKey = '';        // StubHub key
+let profileId: number | null = null;
 let me: any = null;
 
 const PLAN_META: Record<Tier, { label: string; threads: number; price: string; color: string; border: string }> = {
