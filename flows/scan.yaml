@@ -119,7 +119,7 @@ jobs:
                       url: "https://app.ticketmaster.com/discovery/v2/events.json"
                       method: GET
                       query:
-                        apikey: "${{ item.tm_api_key | default:'' }}"
+                        apikey: "${{ item.tm_api_key | default:env.TICKETMASTER_API_KEY }}"
                         keyword: "${{ item.keyword }}"
                         classificationName: "${{ item.category | default:'' }}"
                         size: "20"
