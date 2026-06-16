@@ -1,40 +1,76 @@
-/* styles.css - opt-in custom styles.
+/* TicketSpin global styles */
+@keyframes spin-reel {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-100%); }
+}
 
-   Tailwind is the primary styling engine - drop utility classes
-   directly in your HTML/JSX markup (and in className strings inside
-   .tsx files). Look up utility names at tailwindcss.com/docs. Common
-   patterns the scaffold already uses:
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+  50%       { box-shadow: 0 0 20px 4px rgba(139, 92, 246, 0.4); }
+}
 
-     Layout      flex, grid, gap-4, space-y-2, mx-auto, max-w-3xl
-     Color       bg-zinc-900 dark:bg-zinc-50, text-zinc-100, ring-blue-500
-     Type        text-2xl font-semibold tracking-tight
-     Borders     rounded-md, border, divide-y
-     Spacing     px-3 py-2, p-6, mt-4
-     States      hover:bg-blue-500, focus:outline-none focus:ring-2
-     Dark mode   prefix with "dark:" - automatic via prefers-color-scheme
+@keyframes slot-spin {
+  0%   { transform: translateY(0%); }
+  100% { transform: translateY(-900%); }
+}
 
-   Use this file ONLY for things Tailwind can't express in markup -
-   keyframe animations, third-party widget overrides, custom font
-   declarations, app-wide CSS variables. Don't recreate utility-class
-   styles here; the agent that follows you will end up confused about
-   which path is canonical.
+@keyframes slot-stop {
+  0%   { transform: translateY(-900%); }
+  80%  { transform: translateY(2%); }
+  100% { transform: translateY(0%); }
+}
 
-   Examples of legitimate styles.css content:
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-     @keyframes pulse-once { 0%{opacity:.4} 100%{opacity:1} }
-     .toast-enter { animation: pulse-once .2s ease-out; }
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
 
-     @font-face { font-family: 'CompanyBrand'; src: url(...); }
+.slot-reel {
+  overflow: hidden;
+  position: relative;
+}
 
-   The scaffold leaves this file empty by default. Add what you need;
-   don't add what you don't.
-*/
+.slot-items {
+  display: flex;
+  flex-direction: column;
+}
 
-/* The HTML "hidden" attribute must beat utility display classes. A node like
-   <section class="... flex" hidden> otherwise stays display:flex - the .flex
-   utility loads after the UA [hidden]{display:none} rule with equal
-   specificity, so it wins and the element never actually hides. That breaks
-   the common pattern of toggling the "hidden" attribute to switch between an
-   anonymous view and the signed-in app. Keep this rule (or delete it only if
-   you never use the hidden attribute alongside a display utility class). */
-[hidden] { display: none !important; }
+.slot-items.spinning {
+  animation: slot-spin 0.12s linear infinite;
+}
+
+.slot-items.stopping {
+  animation: slot-stop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.ticket-card {
+  animation: fade-in-up 0.35s ease forwards;
+}
+
+.ticket-card:nth-child(2)  { animation-delay: 0.05s; opacity: 0; }
+.ticket-card:nth-child(3)  { animation-delay: 0.10s; opacity: 0; }
+.ticket-card:nth-child(4)  { animation-delay: 0.15s; opacity: 0; }
+.ticket-card:nth-child(5)  { animation-delay: 0.20s; opacity: 0; }
+.ticket-card:nth-child(6)  { animation-delay: 0.25s; opacity: 0; }
+.ticket-card:nth-child(7)  { animation-delay: 0.30s; opacity: 0; }
+.ticket-card:nth-child(8)  { animation-delay: 0.35s; opacity: 0; }
+
+.spin-btn-active {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.tm-logo-bar {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
