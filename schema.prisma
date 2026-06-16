@@ -7,12 +7,39 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model BrokerProfile {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique @map("user_id")
+  plan       String   @default("starter")   // starter | pro | broker
+  tmApiKey   String   @default("") @map("tm_api_key")
+  keyLabel   String   @default("") @map("key_label")
+  usageToday Int      @default(0) @map("usage_today")
+  usageDate  String   @default("") @map("usage_date")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("broker_profiles")
+}
+
+model HouseKey {
+  id        Int      @id @default(autoincrement())
+  label     String
+  apiKey    String   @map("api_key")
+  active    Boolean  @default(true)
+  usageToday Int     @default(0) @map("usage_today")
+  usageDate  String  @default("") @map("usage_date")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("house_keys")
+}
+
 model Search {
   id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
   keyword   String
   city      String   @default("")
-  startDate String   @default("") @map("start_date")
-  endDate   String   @default("") @map("end_date")
+  strategy  String   @default("")
+  results   Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("searches")
