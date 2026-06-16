@@ -181,13 +181,13 @@ jobs:
                     with:
                       query: |
                         UPDATE watchlists
-                        SET last_hit = CASE WHEN ${{ steps.newhits.rows[0].n }} > 0
+                        SET last_hit = CASE WHEN ${{ steps.newhits.outputs.rows[0].n }} > 0
                                             THEN datetime('now') ELSE last_hit END,
-                            last_hit_price = CASE WHEN ${{ steps.newhits.rows[0].n }} > 0
-                                            THEN ${{ steps.newhits.rows[0].low_price | default:0 }}
+                            last_hit_price = CASE WHEN ${{ steps.newhits.outputs.rows[0].n }} > 0
+                                            THEN ${{ steps.newhits.outputs.rows[0].low_price | default:0 }}
                                             ELSE last_hit_price END,
-                            hits_today = hits_today + ${{ steps.newhits.rows[0].n }},
-                            hit_total  = hit_total  + ${{ steps.newhits.rows[0].n }}
+                            hits_today = hits_today + ${{ steps.newhits.outputs.rows[0].n }},
+                            hit_total  = hit_total  + ${{ steps.newhits.outputs.rows[0].n }}
                         WHERE id = ${{ item.id }}
 
                   - run: sql
