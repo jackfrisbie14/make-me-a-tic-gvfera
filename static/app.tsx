@@ -420,6 +420,7 @@ async function doSpin(): Promise<void> {
   hideStatus();
 
   let totalFound = 0;
+  let totalSoldOut = 0;
   let hasAny = false;
 
   results.forEach((result, i) => {
@@ -427,13 +428,27 @@ async function doSpin(): Promise<void> {
     const s = activeStrategies[i];
     if (result.status === 'fulfilled') {
       const events: TMEvent[] = result.value;
+      const soldOut = events.filter(e => e.dates?.status?.code === 'offsale' || e.dates?.status?.code === 'cancelled').length;
       totalFound += events.length;
+      totalSoldOut += soldOut;
       if (events.length > 0) hasAny = true;
       renderThreadResults(el, s, s.buildParams(base, brokerKey || undefined), events);
     } else {
       renderThreadError(el, s, (result.reason as any)?.message || 'Failed');
     }
   });
+
+  // Log this spin to the searches table for the dashboard
+  try {
+    await bm.api.post('/api/searches', {
+      keyword: base.keyword,
+      city: base.city,
+      strategy: activeStrategies.map(s => s.name).join(', ').slice(0, 200),
+      source: 'ticketmaster',
+      results: totalFound,
+      sold_out: totalSoldOut,
+    });
+  } catch {}
 
   setSpinning(false);
 
