@@ -12,8 +12,12 @@ jobs:
         with:
           url: "https://app.ticketmaster.com/discovery/v2/events.json"
           method: GET
+          sign:
+            compute:
+              apikey: "${{ params.tm_key | or_env:TICKETMASTER_API_KEY }}"
+            query:
+              apikey: "{{apikey}}"
           query:
-            apikey: "${{ params.tm_key | default:'$ENV_TM_KEY' }}"
             keyword: "${{ params.keyword | default:'' }}"
             city: "${{ params.city | default:'' }}"
             startDateTime: "${{ params.startDate | default:'' }}"
