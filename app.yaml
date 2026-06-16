@@ -5,7 +5,25 @@ mode: dark
 auth:
   identifier: email
   session_duration: "30d"
+  signup_fields: "first_name"
 
 features:
   sse: true
   testing: false
+
+access:
+  broker_profiles:
+    read: self
+    write: self
+    update: self
+    delete: admin
+  house_keys:
+    read: admin
+    write: admin
+    update: admin
+    delete: admin
+  searches:
+    read: self
+    write: everyone
+    update: admin
+    delete: admin
