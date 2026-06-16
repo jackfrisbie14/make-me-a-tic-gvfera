@@ -143,3 +143,67 @@ export async function searchAll(params: SearchParams): Promise<TMEvent[]> {
   if (sh.status === 'fulfilled') all.push(...sh.value);
   return all;
 }
+
+// ─── Display helpers ──────────────────────────────────────────────────────────
+export function getBestImage(images?: TMEvent['images']): string {
+  if (!images?.length) return '';
+  // Prefer 16:9 ~640w images
+  const preferred = images
+    .filter(i => i.url && !i.url.includes('RECOMENDATION'))
+    .sort((a, b) => {
+      const aScore = Math.abs(a.width - 640);
+      const bScore = Math.abs(b.width - 640);
+      return aScore - bScore;
+    });
+  return preferred[0]?.url || images[0]?.url || '';
+}
+
+export function formatDate(event: TMEvent): string {
+  const d = event.dates?.start?.localDate;
+  const t = event.dates?.start?.localTime;
+  if (!d) return 'Date TBA';
+  const date = new Date(d + 'T00:00:00');
+  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!t) return dateStr;
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${dateStr} · ${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+export function formatPrice(event: TMEvent): string {
+  const pr = event.priceRanges?.[0];
+  if (!pr) return 'See site';
+  const fmt = (n: number) => n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
+  if (pr.min === pr.max) return fmt(pr.min);
+  return `${fmt(pr.min)} – ${fmt(pr.max)}`;
+}
+
+export function getVenue(event: TMEvent): string {
+  const v = event._embedded?.venues?.[0];
+  if (!v) return '';
+  const parts = [v.name, v.city?.name, v.state?.stateCode].filter(Boolean);
+  return parts.join(', ');
+}
+
+export function getGenre(event: TMEvent): string {
+  const c = event.classifications?.[0];
+  return c?.genre?.name && c.genre.name !== 'Undefined' ? c.genre.name : (c?.segment?.name || '');
+}
+
+export function getStatusBadge(event: TMEvent): { label: string; color: string } {
+  const src = (event as any)._source;
+  const srcBadge = src === 'seatgeek' ? '🪑 ' : src === 'stubhub' ? '🎫 ' : '';
+  const code = event.dates?.status?.code;
+  if (code === 'offsale' || code === 'cancelled') {
+    return { label: srcBadge + '🔥 Sold Out', color: 'bg-red-600/20 text-red-300 border-red-600/40' };
+  }
+  if (code === 'rescheduled') {
+    return { label: srcBadge + '📅 Rescheduled', color: 'bg-amber-600/20 text-amber-300 border-amber-600/40' };
+  }
+  const note = (event.pleaseNote || '').toLowerCase();
+  if (note.includes('limited') || note.includes('selling fast')) {
+    return { label: srcBadge + '⚡ Limited', color: 'bg-orange-600/20 text-orange-300 border-orange-600/40' };
+  }
+  return { label: srcBadge + '✓ On Sale', color: 'bg-green-600/20 text-green-300 border-green-600/40' };
+}
