@@ -85,7 +85,7 @@ jobs:
       - id: results
         run: for_each
         with:
-          items: "${{ steps.watches.rows }}"
+          items: "${{ steps.watches.outputs.rows }}"
           steps:
             # Always stamp last_checked so the cadence holds.
             - run: sql
